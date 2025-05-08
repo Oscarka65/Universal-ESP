@@ -1,6 +1,6 @@
 -- simple ESP for any games that has teams shit. wont work in games where teams are not in GetService:("Players")
 -- its quite simple to understand so u can use it for education or smth idk 
--- made by zsedi aka sinmirka aka oscarka65
+
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
@@ -79,5 +79,39 @@ end
 for _, otherPlayer in ipairs(Players:GetPlayers()) do -- check if player respawned
     task.spawn(processPlayer, otherPlayer)
 end
+
+
+local function onTeamChanged(otherPlayer) -- function if player changes team
+    if otherPlayer == player then return end
+    
+    local character = otherPlayer.Character
+    if character then
+
+        local head = character:FindFirstChild("Head")
+        if head then
+            for _, child in ipairs(head:GetChildren()) do
+                if child:IsA("BillboardGui") or child:IsA("Highlight") then
+                    child:Destroy()
+                end
+            end
+        end
+        
+        highlightPlayer(character, otherPlayer)
+        createNametag(character, otherPlayer.Name, otherPlayer)
+    end
+end
+
+for _, otherPlayer in ipairs(Players:GetPlayers()) do -- catching signal if someone changes team
+    otherPlayer:GetPropertyChangedSignal("Team"):Connect(function()
+        onTeamChanged(otherPlayer)
+    end)
+end
+
+
+Players.PlayerAdded:Connect(function(newPlayer)
+    newPlayer:GetPropertyChangedSignal("Team"):Connect(function()
+        onTeamChanged(newPlayer)
+    end)
+end)
 
 Players.PlayerAdded:Connect(processPlayer) -- if player joins it will work ez
